@@ -24,6 +24,7 @@
     dialogueText: document.getElementById("dialogueText"),
     playBeforeButton: document.getElementById("playBeforeButton"),
     continueButton: document.getElementById("continueButton"),
+    manualNextButton: document.getElementById("manualNextButton"),
     downloadLogButton: document.getElementById("downloadLogButton"),
   };
 
@@ -31,6 +32,8 @@
   let currentTrial = null;
   let logRows = [];
   let playing = false;
+  let playbackGeneration = 0;
+  let resolveCurrentAudio = null;
 
   els.trialTotal.textContent = String(data.totalTrials);
 
@@ -132,12 +135,31 @@
 
   function playFile(src) {
     return new Promise((resolve, reject) => {
+      let settled = false;
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        resolveCurrentAudio = null;
+        player.onended = null;
+        player.onerror = null;
+        resolve();
+      };
+      const fail = () => {
+        if (settled) return;
+        settled = true;
+        resolveCurrentAudio = null;
+        player.onended = null;
+        player.onerror = null;
+        reject(new Error(`Could not play ${src}`));
+      };
+
       player.pause();
       player.currentTime = 0;
       player.src = src;
-      player.onended = () => resolve();
-      player.onerror = () => reject(new Error(`Could not play ${src}`));
-      player.play().catch(reject);
+      resolveCurrentAudio = finish;
+      player.onended = finish;
+      player.onerror = fail;
+      player.play().catch(fail);
     });
   }
 
@@ -221,21 +243,26 @@
   }
 
   async function playSequence(sequence, gapMs) {
+    const generation = playbackGeneration;
     playing = true;
     els.playBeforeButton.disabled = true;
     els.continueButton.disabled = true;
 
     for (const part of sequence) {
+      if (generation !== playbackGeneration) return false;
       setStatus(part.status);
       highlightPart(part.label);
       log("audio_start", part.label);
       await playFile(part.src);
+      if (generation !== playbackGeneration) return false;
       log("audio_end", part.label);
       clearHighlights();
       await sleep(gapMs);
+      if (generation !== playbackGeneration) return false;
     }
 
     playing = false;
+    return true;
   }
 
   function buildBeforeTargetSequence(trial) {
@@ -274,17 +301,19 @@
     if (playing) return;
 
     try {
+      const trial = currentTrial;
       log("play_before_click");
       setSpeakPrompt(false);
-      const before = buildBeforeTargetSequence(currentTrial);
-      await playSequence(before, before.length > 1 ? RESPONSE_GAP_MS : CONTEXT_GAP_MS);
+      const before = buildBeforeTargetSequence(trial);
+      const completed = await playSequence(before, before.length > 1 ? RESPONSE_GAP_MS : CONTEXT_GAP_MS);
+      if (!completed || trial !== currentTrial) return;
       setStatus("Participant turn");
-      log("beep_start", currentTrial.targetResponse);
+      log("beep_start", trial.targetResponse);
       setSpeakPrompt(true);
       els.continueButton.disabled = false;
-      log("participant_turn", currentTrial.targetResponse);
+      log("participant_turn", trial.targetResponse);
       playBeep().then(() => {
-        log("beep_end", currentTrial.targetResponse);
+        if (trial === currentTrial) log("beep_end", trial.targetResponse);
       });
     } catch (error) {
       setStatus("Audio error");
@@ -297,11 +326,13 @@
   async function continueTrial() {
     if (playing) return;
     setSpeakPrompt(false);
-    log("play_rest_click", currentTrial.targetResponse);
+    const trial = currentTrial;
+    log("play_rest_click", trial.targetResponse);
 
     try {
-      const afterTarget = buildFromTargetSequence(currentTrial);
-      await playSequence(afterTarget, RESPONSE_GAP_MS);
+      const afterTarget = buildFromTargetSequence(trial);
+      const completed = await playSequence(afterTarget, RESPONSE_GAP_MS);
+      if (!completed || trial !== currentTrial) return;
       log("trial_complete");
       await showFixationThenNext();
     } catch (error) {
@@ -309,6 +340,30 @@
       console.error(error);
       log("audio_error", error.message);
     }
+  }
+
+  function stopCurrentAudio() {
+    playbackGeneration += 1;
+    player.pause();
+    player.currentTime = 0;
+    if (resolveCurrentAudio) {
+      const resolveAudio = resolveCurrentAudio;
+      resolveCurrentAudio = null;
+      resolveAudio();
+    }
+    if (beepPlayer) {
+      beepPlayer.pause();
+      beepPlayer.currentTime = 0;
+    }
+    clearHighlights();
+    setSpeakPrompt(false);
+    playing = false;
+  }
+
+  function manualNextTrial() {
+    log("manual_next_click");
+    stopCurrentAudio();
+    nextTrial();
   }
 
   async function showFixationThenNext() {
@@ -355,5 +410,6 @@
   });
   els.playBeforeButton.addEventListener("click", playBeforeTarget);
   els.continueButton.addEventListener("click", continueTrial);
+  els.manualNextButton.addEventListener("click", manualNextTrial);
   els.downloadLogButton.addEventListener("click", downloadLog);
 })();
