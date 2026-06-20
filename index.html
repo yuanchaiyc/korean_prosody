@@ -10,67 +10,67 @@
     <main class="shell">
       <section id="welcomeScreen" class="screen is-active">
         <div class="panel">
-          <p class="eyebrow">한국어 운율에 대한 실험 | Korean Prosody Experiment</p>
-          <h1>실험 참여를 환영합니다 | Welcome to the experiment</h1>
+          <p class="eyebrow">한국어 운율에 대한 실험</p>
+          <h1>실험 참여를 환영합니다</h1>
           <p class="lead">
             이 실험에서 당신은 다른 사람과 여러 번 대화를 나눕니다. 우선 각 대화가 일어나는 상황과 상대방이 하는 말을 글로 보고, 소리로도 듣게 됩니다.
-            You are going to engage in several conversations with another person. You will hear
-            the background of each conversation and the sentences said by the other person.
+          <!--You are going to engage in several conversations with another person. You will hear-->
+           <!-- the background of each conversation and the sentences said by the other person. -->
           </p>
           <p class="lead">
             노란색으로 표시된 말풍선은 해당 대화에서 당신이 맡은 역할을 가리키고, 말풍선 안에 있는 문장이 당신의 대사입니다.
             삐 소리가 나면 당신의 대사를 소리 내어 읽어 주세요. 진짜 대화를 하는 중이라고 상상하며 자연스러운 속도와 억양으로 말해 주세요.
-            The sentence highlighted in yellow is your role in the conversation, and it is the
-            sentence you are going to say. When you hear a beep sound, please say that sentence
-            out loud. Imagine yourself in a real conversation, and produce the sentence with a
-            natural speed and intonation.
+            <!--The sentence highlighted in yellow is your role in the conversation, and it is the-->
+            <!--sentence you are going to say. When you hear a beep sound, please say that sentence-->
+            <!--out loud. Imagine yourself in a real conversation, and produce the sentence with a-->
+            <!--natural speed and intonation.-->
           </p>
           <p class="lead">
             "상황과 대화 재생하기" 버튼을 눌러 각 문항을 시작하세요. 당신의 대사를 다 읽은 후 "나머지 재생하기" 버튼을 누르면 나머지 대화가 재생되고 다음 문항으로 넘어갑니다.
-            Click <strong>Play context and conversation</strong> to start each trial. When you
-            finish producing your sentence, click <strong>Play rest</strong> to listen to the rest
-            of the conversation.
+            <!--Click <strong>Play context and conversation</strong> to start each trial. When you-->
+            <!--finish producing your sentence, click <strong>Play rest</strong> to listen to the rest-->
+            <!--of the conversation.-->
           </p>
-          <button id="startButton" class="primary">실험 시작하기 | Start experiment</button>
+          <button id="startButton" class="primary">실험 시작하기</button>
         </div>
       </section>
 
       <section id="trialScreen" class="screen">
         <header class="trialHeader">
           <div>
-            <p class="eyebrow">문항 | Trial <span id="trialNumber">1</span> / <span id="trialTotal">150</span></p>
+            <p class="eyebrow">문항<span id="trialNumber">1</span> / <span id="trialTotal">150</span></p>
             <h1 id="trialId">q0000</h1>
           </div>
-          <div id="statusText" class="status">준비하세요 | Ready</div>
+          <div id="statusText" class="status">준비</div>
         </header>
 
         <section class="contentBand">
-          <h2>Context</h2>
+          <h2>상황</h2>
           <p id="contextText" class="koreanText"></p>
         </section>
 
         <section class="contentBand">
-          <div id="speakPrompt" class="speakPrompt" aria-live="polite">이제 말하세요 | Speak now</div>
-          <h2>대화 | Conversation</h2>
+          <div id="speakPrompt" class="speakPrompt" aria-live="polite">이제 말하세요</div>
+          <h2>대화</h2>
           <div id="dialogueText" class="dialogue"></div>
         </section>
 
         <footer class="controls">
-          <button id="playBeforeButton" class="primary">상황과 대화 재생하기 | Play context and conversation</button>
-          <button id="continueButton" class="primary" disabled>나머지 재생하기 | Play rest</button>
-          <button id="manualNextButton" class="secondary">다음 페이지 | Next</button>
+          <button id="playBeforeButton" class="primary">상황과 대화 재생하기</button>
+          <button id="continueButton" class="primary" disabled>나머지 재생하기</button>
+          <button id="manualNextButton" class="secondary">다음 페이지</button>
         </footer>
       </section>
 
       <section id="fixationScreen" class="screen">
-        <div class="fixation">준비하세요 | Ready!</div>
+        <div class="fixation">준비하세요</div>
       </section>
 
       <section id="endScreen" class="screen">
         <div class="panel">
-          <p class="eyebrow">완료 | Complete</p>
+          <p class="eyebrow">완료</p>
           <h1>Thank you</h1>
-          <p class="lead">실험이 끝났습니다 | The experiment is finished.</p>
+          <p class="lead">실험이 끝났습니다.</p>
           <button id="downloadLogButton" class="secondary">Download event log</button>
         </div>
       </section>
