@@ -311,6 +311,8 @@ button {
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 button:disabled {

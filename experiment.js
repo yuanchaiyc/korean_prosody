@@ -334,7 +334,7 @@
       const completed = await playSequence(afterTarget, RESPONSE_GAP_MS);
       if (!completed || trial !== currentTrial) return;
       log("trial_complete");
-      await showFixationThenNext();
+      nextTrial();
     } catch (error) {
       setStatus("Audio error");
       console.error(error);
@@ -404,12 +404,27 @@
     URL.revokeObjectURL(url);
   }
 
-  els.startButton.addEventListener("click", () => {
+  function bindButtonActivation(button, handler) {
+    let lastTouchTime = 0;
+
+    button.addEventListener("touchend", (event) => {
+      lastTouchTime = Date.now();
+      event.preventDefault();
+      handler(event);
+    }, { passive: false });
+
+    button.addEventListener("click", (event) => {
+      if (Date.now() - lastTouchTime < 700) return;
+      handler(event);
+    });
+  }
+
+  bindButtonActivation(els.startButton, () => {
     log("experiment_start");
     nextTrial();
   });
-  els.playBeforeButton.addEventListener("click", playBeforeTarget);
-  els.continueButton.addEventListener("click", continueTrial);
-  els.manualNextButton.addEventListener("click", manualNextTrial);
-  els.downloadLogButton.addEventListener("click", downloadLog);
+  bindButtonActivation(els.playBeforeButton, playBeforeTarget);
+  bindButtonActivation(els.continueButton, continueTrial);
+  bindButtonActivation(els.manualNextButton, manualNextTrial);
+  bindButtonActivation(els.downloadLogButton, downloadLog);
 })();
