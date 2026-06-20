@@ -5,6 +5,7 @@
   const FIXATION_MS = 1000;
 
   const player = document.getElementById("player");
+  const beepPlayer = document.getElementById("beepPlayer");
   const screens = {
     welcome: document.getElementById("welcomeScreen"),
     trial: document.getElementById("trialScreen"),
@@ -142,6 +143,33 @@
 
   function playBeep() {
     return new Promise((resolve) => {
+      let settled = false;
+      const finish = () => {
+        if (!settled) {
+          settled = true;
+          resolve();
+        }
+      };
+
+      window.setTimeout(finish, 700);
+
+      if (beepPlayer) {
+        beepPlayer.pause();
+        beepPlayer.currentTime = 0;
+        beepPlayer.onended = finish;
+        beepPlayer.onerror = finish;
+        beepPlayer.play().catch(() => {
+          playSyntheticBeep().then(finish);
+        });
+        return;
+      }
+
+      playSyntheticBeep().then(finish);
+    });
+  }
+
+  function playSyntheticBeep() {
+    return new Promise((resolve) => {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
       if (!AudioContext) {
         resolve();
@@ -253,10 +281,11 @@
       setStatus("Participant turn");
       log("beep_start", currentTrial.targetResponse);
       setSpeakPrompt(true);
-      await playBeep();
-      log("beep_end", currentTrial.targetResponse);
       els.continueButton.disabled = false;
       log("participant_turn", currentTrial.targetResponse);
+      playBeep().then(() => {
+        log("beep_end", currentTrial.targetResponse);
+      });
     } catch (error) {
       setStatus("Audio error");
       els.playBeforeButton.disabled = false;
