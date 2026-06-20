@@ -1,0 +1,406 @@
+:root {
+  color-scheme: light;
+  --bg: #f5f6f7;
+  --ink: #1f2933;
+  --muted: #64707d;
+  --line: #d8dde3;
+  --panel: #ffffff;
+  --accent: #25636f;
+  --accent-dark: #174852;
+  --target: #fff2bf;
+  --target-line: #d4a72c;
+  --playing: #dceefe;
+  --playing-line: #3b82b8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: Arial, "Noto Sans KR", "Malgun Gothic", sans-serif;
+  line-height: 1.5;
+}
+
+.shell {
+  width: min(1080px, calc(100vw - 24px));
+  margin: 0 auto;
+  padding: 12px 0;
+}
+
+.screen {
+  display: none;
+}
+
+.screen.is-active {
+  display: block;
+}
+
+#trialScreen.is-active {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  gap: 10px;
+  height: calc(100vh - 24px);
+  overflow: hidden;
+}
+
+.panel,
+.contentBand,
+.trialHeader,
+.controls {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.panel {
+  margin: 10vh auto 0;
+  max-width: 720px;
+  padding: 44px;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 16px;
+  font-size: 34px;
+  line-height: 1.15;
+}
+
+h2 {
+  margin-bottom: 14px;
+  font-size: 18px;
+}
+
+.lead {
+  max-width: 62ch;
+  margin-bottom: 28px;
+  color: var(--muted);
+  font-size: 18px;
+}
+
+.trialHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 10px 16px;
+  margin-bottom: 0;
+}
+
+.trialHeader h1 {
+  margin-bottom: 0;
+  font-size: 24px;
+}
+
+.status {
+  min-width: 160px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.speakPrompt {
+  display: none;
+  width: 100%;
+  margin: 0 0 10px;
+  padding: 10px 16px;
+  border: 2px solid var(--target-line);
+  border-radius: 6px;
+  background: var(--target);
+  color: #5c4710;
+  font-size: 32px;
+  line-height: 1.15;
+  font-weight: 700;
+  text-align: center;
+}
+
+.speakPrompt.is-visible {
+  display: block;
+}
+
+.contentBand {
+  padding: 12px 16px;
+  margin-bottom: 0;
+  min-height: 0;
+}
+
+.contentBand.is-playing {
+  background: var(--playing);
+  border-color: var(--playing-line);
+}
+
+.koreanText,
+.bubbleText {
+  font-size: 20px;
+  line-height: 1.45;
+  word-break: keep-all;
+}
+
+.koreanText {
+  margin-bottom: 0;
+}
+
+.dialogue {
+  display: grid;
+  gap: 10px;
+  min-height: 0;
+}
+
+.dialogueLine {
+  display: grid;
+  grid-template-columns: 70px minmax(0, 1fr);
+  align-items: end;
+  gap: 10px;
+}
+
+.dialogueLine.is-right {
+  grid-template-columns: minmax(0, 1fr) 70px;
+}
+
+.dialogueLine.is-right .person {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.dialogueLine.is-right .bubble {
+  grid-column: 1;
+  grid-row: 1;
+  justify-self: end;
+}
+
+.person {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+}
+
+.avatar {
+  display: grid;
+  justify-items: center;
+  align-content: end;
+  gap: 4px;
+  width: 58px;
+  height: 58px;
+}
+
+.avatarHead {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: #6fa8b8;
+}
+
+.avatarBody {
+  width: 42px;
+  height: 27px;
+  border-radius: 17px 17px 8px 8px;
+  background: #8fc6d1;
+}
+
+.dialogueLine.is-right .avatarHead {
+  background: #8a9aa6;
+}
+
+.dialogueLine.is-right .avatarBody {
+  background: #a9b6bf;
+}
+
+.dialogueLine.is-target .avatarHead {
+  background: #d4a72c;
+}
+
+.dialogueLine.is-target .avatarBody {
+  background: #f2d66b;
+}
+
+.speakerName {
+  max-width: 70px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  word-break: keep-all;
+}
+
+.bubble {
+  position: relative;
+  width: min(100%, 720px);
+  min-height: 48px;
+  padding: 8px 12px;
+  border: 2px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.bubble::before {
+  content: "";
+  position: absolute;
+  left: -12px;
+  bottom: 14px;
+  width: 16px;
+  height: 16px;
+  border-left: 2px solid var(--line);
+  border-bottom: 2px solid var(--line);
+  background: inherit;
+  transform: rotate(45deg);
+}
+
+.dialogueLine.is-right .bubble::before {
+  right: -12px;
+  left: auto;
+  border-right: 2px solid var(--line);
+  border-left: 0;
+  transform: rotate(-45deg);
+}
+
+.dialogueLine.is-target .bubble {
+  border-color: var(--target-line);
+  background: var(--target);
+}
+
+.dialogueLine.is-playing .bubble {
+  border-color: var(--playing-line);
+  background: var(--playing);
+}
+
+.bubbleText {
+  white-space: pre-wrap;
+}
+
+.controls {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 10px 12px;
+}
+
+.fixation {
+  display: grid;
+  min-height: calc(100vh - 80px);
+  place-items: center;
+  color: var(--ink);
+  font-size: 48px;
+  font-weight: 700;
+}
+
+button {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.primary {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.primary:not(:disabled):hover {
+  background: var(--accent-dark);
+}
+
+.secondary {
+  background: #ffffff;
+  border-color: var(--line);
+  color: var(--ink);
+}
+
+.secondary:not(:disabled):hover {
+  border-color: var(--accent);
+}
+
+@media (max-width: 680px) {
+  .shell {
+    width: min(100vw - 24px, 980px);
+    padding: 12px 0;
+  }
+
+  #trialScreen.is-active {
+    height: auto;
+    min-height: 0;
+  }
+
+  .panel,
+  .contentBand,
+  .trialHeader {
+    padding: 12px;
+  }
+
+  .trialHeader,
+  .controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  h1 {
+    font-size: 28px;
+  }
+
+  .koreanText,
+  .bubbleText {
+    font-size: 18px;
+  }
+
+  .speakPrompt {
+    font-size: 26px;
+  }
+
+  .dialogueLine,
+  .dialogueLine.is-right {
+    grid-template-columns: 64px minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .dialogueLine.is-right {
+    grid-template-columns: minmax(0, 1fr) 64px;
+  }
+
+  .avatar {
+    width: 58px;
+    height: 58px;
+  }
+
+  .avatarHead {
+    width: 25px;
+    height: 25px;
+  }
+
+  .avatarBody {
+    width: 42px;
+    height: 27px;
+    border-radius: 17px 17px 8px 8px;
+  }
+
+  .speakerName {
+    max-width: 64px;
+    font-size: 12px;
+  }
+}

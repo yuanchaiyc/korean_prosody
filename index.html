@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Korean Prosody Experiment - Sequential Backup</title>
+    <link rel="stylesheet" href="experiment.css">
+  </head>
+  <body>
+    <main class="shell">
+      <section id="welcomeScreen" class="screen is-active">
+        <div class="panel">
+          <p class="eyebrow">Korean Prosody Experiment</p>
+          <h1>Welcome to the experiment</h1>
+          <p class="lead">
+            You are going to engage in several conversations with another person. You will hear
+            the background of each conversation and the sentences said by the other person.
+          </p>
+          <p class="lead">
+            The sentence highlighted in yellow is your role in the conversation, and it is the
+            sentence you are going to say. When you hear a beep sound, please say that sentence
+            out loud. Imagine yourself in a real conversation, and produce the sentence with a
+            natural speed and intonation.
+          </p>
+          <p class="lead">
+            Click <strong>Play context and conversation</strong> to start each trial. When you
+            finish producing your sentence, click <strong>Play rest</strong> to listen to the rest
+            of the conversation.
+          </p>
+          <button id="startButton" class="primary">Start experiment</button>
+        </div>
+      </section>
+
+      <section id="trialScreen" class="screen">
+        <header class="trialHeader">
+          <div>
+            <p class="eyebrow">Trial <span id="trialNumber">1</span> / <span id="trialTotal">150</span></p>
+            <h1 id="trialId">q0000</h1>
+          </div>
+          <div id="statusText" class="status">Ready</div>
+        </header>
+
+        <section class="contentBand">
+          <h2>Context</h2>
+          <p id="contextText" class="koreanText"></p>
+        </section>
+
+        <section class="contentBand">
+          <div id="speakPrompt" class="speakPrompt" aria-live="polite">Speak now</div>
+          <h2>Conversation</h2>
+          <div id="dialogueText" class="dialogue"></div>
+        </section>
+
+        <footer class="controls">
+          <button id="playBeforeButton" class="primary">Play context and conversation</button>
+          <button id="continueButton" class="primary" disabled>Play rest</button>
+        </footer>
+      </section>
+
+      <section id="fixationScreen" class="screen">
+        <div class="fixation">Ready!</div>
+      </section>
+
+      <section id="endScreen" class="screen">
+        <div class="panel">
+          <p class="eyebrow">Complete</p>
+          <h1>Thank you</h1>
+          <p class="lead">The experiment is finished.</p>
+          <button id="downloadLogButton" class="secondary">Download event log</button>
+        </div>
+      </section>
+    </main>
+
+    <audio id="player" preload="auto"></audio>
+    <script src="experiment_data_sequential_1rep.js"></script>
+    <script src="experiment.js"></script>
+  </body>
+</html>
