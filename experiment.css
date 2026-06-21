@@ -153,6 +153,14 @@ h2 {
   gap: 6px;
 }
 
+.conditionalQuestion {
+  display: none;
+}
+
+.conditionalQuestion.is-visible {
+  display: block;
+}
+
 .languageTableHeader {
   display: flex;
   align-items: center;
@@ -208,6 +216,11 @@ h2 {
   margin: 0;
   color: var(--muted);
   font-size: 14px;
+}
+
+.surveyStatus.is-warning {
+  color: #9f2d20;
+  font-weight: 700;
 }
 
 .trialHeader {
@@ -289,13 +302,15 @@ h2 {
 .dialogue {
   display: grid;
   gap: 10px;
+  align-content: start;
+  align-items: start;
   min-height: 0;
 }
 
 .dialogueLine {
   display: grid;
   grid-template-columns: 70px minmax(0, 1fr);
-  align-items: end;
+  align-items: start;
   gap: 10px;
 }
 

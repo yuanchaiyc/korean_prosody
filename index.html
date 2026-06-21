@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Korean Prosody Experiment - Sequential Backup</title>
-    <link rel="stylesheet" href="experiment.css?v=20260621-conversation-cue-r1">
+    <link rel="stylesheet" href="experiment.css?v=20260621-subjid-time">
   </head>
   <body>
     <main class="shell">
@@ -28,8 +28,6 @@
             나머지 대화가 재생됩니다. 이후 <strong>다음 페이지</strong> 버튼을 눌러
             다음 문항으로 넘어가세요.
           </p>
-          <label class="fieldLabel" for="participantIdInput">참가자 ID</label>
-          <input id="participantIdInput" class="textInput" type="text" autocomplete="off" placeholder="선택 사항">
           <button id="startButton" class="primary">실험 시작하기</button>
         </div>
       </section>
@@ -75,8 +73,12 @@
             <label class="fieldLabel" for="ageInput">1. 나이</label>
             <input id="ageInput" class="textInput" type="number" min="0" max="120" inputmode="numeric">
 
-            <label class="fieldLabel" for="genderInput">2. 성별</label>
-            <input id="genderInput" class="textInput" type="text" autocomplete="off">
+            <fieldset class="surveyFieldset">
+              <legend>2. 성별</legend>
+              <label><input type="radio" name="gender" value="female"> 여성</label>
+              <label><input type="radio" name="gender" value="male"> 남성</label>
+              <label><input type="radio" name="gender" value="non-binary"> 논바이너리</label>
+            </fieldset>
 
             <fieldset class="surveyFieldset">
               <legend>3. 한국어가 모국어입니까?</legend>
@@ -90,11 +92,37 @@
               <label><input type="radio" name="koreanOnlyBeforeSix" value="no"> 아니요</label>
             </fieldset>
 
-            <label class="fieldLabel" for="otherBeforeSixInput">아니라면, 만 6세 이전에 사용한 다른 언어를 적어 주세요.</label>
-            <input id="otherBeforeSixInput" class="textInput wideInput" type="text" autocomplete="off">
+            <div id="otherBeforeSixBlock" class="conditionalQuestion">
+              <label class="fieldLabel" for="otherBeforeSixInput">아니라면, 만 6세 이전에 사용한 다른 언어를 적어 주세요.</label>
+              <input id="otherBeforeSixInput" class="textInput wideInput" type="text" autocomplete="off">
+            </div>
 
-            <label class="fieldLabel" for="grewUpCityInput">5. 어느 도시에서 자랐습니까?</label>
-            <input id="grewUpCityInput" class="textInput wideInput" type="text" autocomplete="off">
+            <fieldset class="surveyFieldset">
+              <legend>5. 만 15세 이전에 한국에서 가장 오래 살았습니까?</legend>
+              <label><input type="radio" name="livedLongestInKoreaBeforeFifteen" value="yes"> 예</label>
+              <label><input type="radio" name="livedLongestInKoreaBeforeFifteen" value="no"> 아니요</label>
+            </fieldset>
+
+            <div id="koreaProvinceBlock" class="conditionalQuestion">
+              <label class="fieldLabel" for="koreaProvinceSelect">만 15세 이전에 가장 오래 산 한국의 도를 선택해 주세요.</label>
+              <select id="koreaProvinceSelect" class="textInput wideInput">
+                <option value="">선택해 주세요</option>
+                <option value="경기도">경기도</option>
+                <option value="강원특별자치도">강원특별자치도</option>
+                <option value="충청북도">충청북도</option>
+                <option value="충청남도">충청남도</option>
+                <option value="전북특별자치도">전북특별자치도</option>
+                <option value="전라남도">전라남도</option>
+                <option value="경상북도">경상북도</option>
+                <option value="경상남도">경상남도</option>
+                <option value="제주특별자치도">제주특별자치도</option>
+              </select>
+            </div>
+
+            <div id="nonKoreaRegionBlock" class="conditionalQuestion">
+              <label class="fieldLabel" for="nonKoreaRegionInput">아니라면, 만 15세 이전에 가장 오래 산 나라와 지역을 적어 주세요.</label>
+              <input id="nonKoreaRegionInput" class="textInput wideInput" type="text" autocomplete="off">
+            </div>
 
             <div class="languageTableHeader">
               <label class="fieldLabel">6. 추가로 사용하는 언어와 사용 기간</label>
@@ -131,7 +159,7 @@
 
     <audio id="player" preload="auto" playsinline></audio>
     <audio id="beepPlayer" preload="auto" playsinline src="assets/beep.wav"></audio>
-    <script src="experiment_data_sequential_1rep.js?v=20260621-conversation-cue-r1"></script>
-    <script src="experiment.js?v=20260621-conversation-cue-r1"></script>
+    <script src="experiment_data_sequential_1rep.js?v=20260621-subjid-time"></script>
+    <script src="experiment.js?v=20260621-subjid-time"></script>
   </body>
 </html>

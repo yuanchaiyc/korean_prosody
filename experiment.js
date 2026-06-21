@@ -4,10 +4,11 @@
   const CONTEXT_GAP_MS = 650;
   const CONTEXT_TO_CONVERSATION_GAP_MS = 1200;
   const FIXATION_MS = 1000;
+  const RESPONSE_RECORDING_PREROLL_MS = 250;
   const SPEAK_PROMPT_TEXT = "이제 말하세요";
   const CONVERSATION_PROMPT_TEXT = "대화를 재생합니다";
   const UPLOAD_URL = "https://script.google.com/macros/s/AKfycbwa_qOZekMqpznTrDWIqI6vV12eg4GpKLghQUG2E_7Ua4opb_-ArLjTiZRp6T1TTmI/exec";
-  const SESSION_ID = `session_${new Date().toISOString().replace(/[:.]/g, "-")}`;
+  const SUBJECT_ID = generateSubjectId();
 
   const player = document.getElementById("player");
   const beepPlayer = document.getElementById("beepPlayer");
@@ -25,7 +26,6 @@
     trialTotal: document.getElementById("trialTotal"),
     trialId: document.getElementById("trialId"),
     statusText: document.getElementById("statusText"),
-    participantIdInput: document.getElementById("participantIdInput"),
     speakPrompt: document.getElementById("speakPrompt"),
     contextText: document.getElementById("contextText"),
     dialogueText: document.getElementById("dialogueText"),
@@ -34,13 +34,16 @@
     manualNextButton: document.getElementById("manualNextButton"),
     surveyForm: document.getElementById("surveyForm"),
     ageInput: document.getElementById("ageInput"),
-    genderInput: document.getElementById("genderInput"),
     otherBeforeSixInput: document.getElementById("otherBeforeSixInput"),
-    grewUpCityInput: document.getElementById("grewUpCityInput"),
+    koreaProvinceBlock: document.getElementById("koreaProvinceBlock"),
+    koreaProvinceSelect: document.getElementById("koreaProvinceSelect"),
+    nonKoreaRegionBlock: document.getElementById("nonKoreaRegionBlock"),
+    nonKoreaRegionInput: document.getElementById("nonKoreaRegionInput"),
     languageRows: document.getElementById("languageRows"),
     addLanguageButton: document.getElementById("addLanguageButton"),
     submitSurveyButton: document.getElementById("submitSurveyButton"),
     surveyUploadStatus: document.getElementById("surveyUploadStatus"),
+    otherBeforeSixBlock: document.getElementById("otherBeforeSixBlock"),
     downloadLogButton: document.getElementById("downloadLogButton"),
   };
 
@@ -50,13 +53,29 @@
   let playing = false;
   let playbackGeneration = 0;
   let resolveCurrentAudio = null;
-  let participantId = SESSION_ID;
+  let participantId = SUBJECT_ID;
   let micStream = null;
-  let mediaRecorder = null;
-  let recordingChunks = [];
+  let audioContext = null;
+  let recorderSource = null;
+  let recorderProcessor = null;
+  let recordingState = null;
   let surveyStartedAt = "";
 
   els.trialTotal.textContent = String(data.totalTrials);
+
+  function generateSubjectId() {
+    const randomDigits = Math.floor(10000 + Math.random() * 90000);
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/Los_Angeles",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).formatToParts(new Date());
+    const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+    return `subj${randomDigits}_${values.month}${values.day}_${values.hour}${values.minute}`;
+  }
 
   function showScreen(name) {
     Object.values(screens).forEach((screen) => screen.classList.remove("is-active"));
@@ -89,13 +108,25 @@
       .replace(/^_+|_+$/g, "");
   }
 
+  function formatPdtTimestamp(date = new Date()) {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/Los_Angeles",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+      timeZoneName: "short",
+    }).formatToParts(date);
+    const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+    return `${values.year}${values.month}${values.day}_${values.hour}${values.minute}${values.second}_${values.timeZoneName}`;
+  }
+
   async function requestMicPermission() {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       throw new Error("This browser does not support microphone recording.");
-    }
-
-    if (!window.MediaRecorder) {
-      throw new Error("This browser does not support MediaRecorder.");
     }
 
     if (!micStream) {
@@ -107,27 +138,6 @@
         },
       });
     }
-  }
-
-  function getRecordingMimeType() {
-    if (!window.MediaRecorder) return "";
-
-    const preferredTypes = [
-      "audio/webm;codecs=opus",
-      "audio/webm",
-      "audio/mp4",
-      "audio/mpeg",
-      "audio/ogg;codecs=opus",
-    ];
-
-    return preferredTypes.find((type) => MediaRecorder.isTypeSupported(type)) || "";
-  }
-
-  function getExtension(mimeType) {
-    if (mimeType.includes("mp4")) return "m4a";
-    if (mimeType.includes("mpeg")) return "mp3";
-    if (mimeType.includes("ogg")) return "ogg";
-    return "webm";
   }
 
   function blobToBase64(blob) {
@@ -142,9 +152,95 @@
     });
   }
 
+  function getBrowserInfo() {
+    return {
+      userAgent: navigator.userAgent,
+      platform: navigator.platform || "",
+      language: navigator.language || "",
+      languages: navigator.languages ? Array.from(navigator.languages) : [],
+      vendor: navigator.vendor || "",
+    };
+  }
+
+  function getMicInfo() {
+    if (!micStream) return {};
+    const track = micStream.getAudioTracks()[0];
+    if (!track) return {};
+    return {
+      label: track.label || "",
+      id: track.id || "",
+      kind: track.kind || "",
+      enabled: track.enabled,
+      muted: track.muted,
+      settings: track.getSettings ? track.getSettings() : {},
+      constraints: track.getConstraints ? track.getConstraints() : {},
+    };
+  }
+
+  function interleaveChannels(channelBuffers, channelCount, frameCount) {
+    const interleaved = new Float32Array(frameCount * channelCount);
+    for (let frame = 0; frame < frameCount; frame += 1) {
+      for (let channel = 0; channel < channelCount; channel += 1) {
+        interleaved[frame * channelCount + channel] = channelBuffers[channel][frame];
+      }
+    }
+    return interleaved;
+  }
+
+  function writeString(view, offset, string) {
+    for (let index = 0; index < string.length; index += 1) {
+      view.setUint8(offset + index, string.charCodeAt(index));
+    }
+  }
+
+  function encodeWav(chunks, sampleRate, channelCount) {
+    const frameCount = chunks.reduce((total, chunk) => total + chunk[0].length, 0);
+    const channelBuffers = Array.from({ length: channelCount }, () => new Float32Array(frameCount));
+    let offset = 0;
+
+    chunks.forEach((chunk) => {
+      const chunkLength = chunk[0].length;
+      for (let channel = 0; channel < channelCount; channel += 1) {
+        channelBuffers[channel].set(chunk[channel], offset);
+      }
+      offset += chunkLength;
+    });
+
+    const samples = channelCount === 1
+      ? channelBuffers[0]
+      : interleaveChannels(channelBuffers, channelCount, frameCount);
+    const bytesPerSample = 2;
+    const dataBytes = samples.length * bytesPerSample;
+    const buffer = new ArrayBuffer(44 + dataBytes);
+    const view = new DataView(buffer);
+
+    writeString(view, 0, "RIFF");
+    view.setUint32(4, 36 + dataBytes, true);
+    writeString(view, 8, "WAVE");
+    writeString(view, 12, "fmt ");
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, channelCount, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * channelCount * bytesPerSample, true);
+    view.setUint16(32, channelCount * bytesPerSample, true);
+    view.setUint16(34, 16, true);
+    writeString(view, 36, "data");
+    view.setUint32(40, dataBytes, true);
+
+    let byteOffset = 44;
+    for (let index = 0; index < samples.length; index += 1) {
+      const sample = Math.max(-1, Math.min(1, samples[index]));
+      view.setInt16(byteOffset, sample < 0 ? sample * 0x8000 : sample * 0x7fff, true);
+      byteOffset += 2;
+    }
+
+    return new Blob([buffer], { type: "audio/wav" });
+  }
+
   async function uploadRecording(blob, meta) {
     try {
-      const mimeType = blob.type || meta.mimeType || "audio/webm";
+      const mimeType = blob.type || meta.mimeType || "audio/wav";
       const payload = {
         participantId,
         trialId: meta.trialId,
@@ -155,7 +251,11 @@
         stoppedAt: meta.stoppedAt,
         stopReason: meta.stopReason,
         mimeType,
-        extension: getExtension(mimeType),
+        extension: meta.extension || "wav",
+        fileNameBase: `${participantId}_${meta.trialId}_${formatPdtTimestamp(new Date(meta.stoppedAt || Date.now()))}`,
+        browserInfo: getBrowserInfo(),
+        microphoneInfo: getMicInfo(),
+        audioInfo: meta.audioInfo || {},
         audioBase64: await blobToBase64(blob),
       };
 
@@ -188,6 +288,9 @@
       stopReason: "survey_submit",
       mimeType: blob.type,
       extension: "json",
+      fileNameBase: `${participantId}_survey_${formatPdtTimestamp(new Date(surveyData.submittedAt || Date.now()))}`,
+      browserInfo: getBrowserInfo(),
+      microphoneInfo: getMicInfo(),
       audioBase64: await blobToBase64(blob),
     };
 
@@ -201,59 +304,131 @@
     log("survey_upload_submitted", participantId);
   }
 
-  function startResponseRecording(trial) {
-    if (!micStream || !window.MediaRecorder || mediaRecorder) return;
+  async function uploadSessionMetadataFile(eventName = "experiment_start") {
+    const submittedAt = new Date().toISOString();
+    const metadata = {
+      participantId,
+      event: eventName,
+      submittedAt,
+      browserInfo: getBrowserInfo(),
+      microphoneInfo: getMicInfo(),
+      recordingFormat: {
+        format: "PCM WAV",
+        channelCount: 1,
+        bitDepth: 16,
+        sampleRate: audioContext ? audioContext.sampleRate : "",
+      },
+      experiment: {
+        totalTrials: data.totalTrials,
+        uploadUrlConfigured: Boolean(UPLOAD_URL),
+      },
+    };
+    const blob = new Blob([JSON.stringify(metadata, null, 2)], {
+      type: "application/json;charset=utf-8",
+    });
+    const payload = {
+      participantId,
+      trialId: "metadata",
+      targetResponse: eventName,
+      trialNumber: "",
+      repetition: "",
+      startedAt: submittedAt,
+      stoppedAt: submittedAt,
+      stopReason: eventName,
+      mimeType: blob.type,
+      extension: "json",
+      fileNameBase: `${participantId}_metadata_${formatPdtTimestamp(new Date(submittedAt))}`,
+      browserInfo: metadata.browserInfo,
+      microphoneInfo: metadata.microphoneInfo,
+      audioBase64: await blobToBase64(blob),
+    };
 
-    const mimeType = getRecordingMimeType();
-    const options = mimeType ? { mimeType } : undefined;
+    await fetch(UPLOAD_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload),
+    });
+
+    log("metadata_upload_submitted", eventName);
+  }
+
+  function startResponseRecording(trial) {
+    if (!micStream || recordingState) return;
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) {
+      log("recording_error", "This browser does not support AudioContext.");
+      return;
+    }
+
     const meta = {
       trialId: trial.id,
       targetResponse: trial.targetResponse,
       trialNumber: trial.trial,
       repetition: trial.repetition,
       startedAt: new Date().toISOString(),
-      mimeType,
+      mimeType: "audio/wav",
+      extension: "wav",
     };
 
     try {
-      recordingChunks = [];
-      const recorder = new MediaRecorder(micStream, options);
-      mediaRecorder = recorder;
-
-      recorder.ondataavailable = (event) => {
-        if (event.data && event.data.size > 0) recordingChunks.push(event.data);
+      audioContext = audioContext || new AudioContext();
+      if (audioContext.state === "suspended") audioContext.resume();
+      recorderSource = audioContext.createMediaStreamSource(micStream);
+      recorderProcessor = audioContext.createScriptProcessor(4096, 1, 1);
+      recordingState = {
+        meta,
+        chunks: [],
+        sampleRate: audioContext.sampleRate,
+        channelCount: 1,
       };
 
-      recorder.onstop = () => {
-        const shouldUpload = !recorder.dataset || recorder.dataset.shouldUpload !== "false";
-        const blob = new Blob(recordingChunks, { type: recorder.mimeType || mimeType || "audio/webm" });
-        const stoppedMeta = {
-          ...meta,
-          stoppedAt: new Date().toISOString(),
-          stopReason: recorder.dataset ? recorder.dataset.stopReason : "unknown",
-        };
-        mediaRecorder = null;
-        recordingChunks = [];
-        if (shouldUpload) {
-          uploadRecording(blob, stoppedMeta);
-        } else {
-          log("recording_discarded", stoppedMeta.stopReason);
-        }
+      recorderProcessor.onaudioprocess = (event) => {
+        if (!recordingState) return;
+        const input = event.inputBuffer.getChannelData(0);
+        recordingState.chunks.push([new Float32Array(input)]);
       };
 
-      recorder.start();
+      recorderSource.connect(recorderProcessor);
+      recorderProcessor.connect(audioContext.destination);
       log("recording_start", `${trial.id}_${trial.targetResponse}`);
     } catch (error) {
-      mediaRecorder = null;
+      recordingState = null;
       console.error(error);
       log("recording_error", error.message);
     }
   }
 
   function stopResponseRecording(reason, shouldUpload = true) {
-    if (!mediaRecorder || mediaRecorder.state === "inactive") return;
-    mediaRecorder.dataset = { stopReason: reason, shouldUpload: String(shouldUpload) };
-    mediaRecorder.stop();
+    if (!recordingState) return;
+    const state = recordingState;
+    recordingState = null;
+
+    if (recorderProcessor) {
+      recorderProcessor.disconnect();
+      recorderProcessor.onaudioprocess = null;
+    }
+    if (recorderSource) recorderSource.disconnect();
+    recorderProcessor = null;
+    recorderSource = null;
+
+    const stoppedMeta = {
+      ...state.meta,
+      stoppedAt: new Date().toISOString(),
+      stopReason: reason,
+      audioInfo: {
+        format: "PCM WAV",
+        sampleRate: state.sampleRate,
+        channelCount: state.channelCount,
+        bitDepth: 16,
+      },
+    };
+    if (shouldUpload) {
+      const blob = encodeWav(state.chunks, state.sampleRate, state.channelCount);
+      uploadRecording(blob, stoppedMeta);
+    } else {
+      log("recording_discarded", reason);
+    }
     log("recording_stop", reason);
   }
 
@@ -517,12 +692,15 @@
       const before = buildBeforeTargetSequence(trial);
       const completed = await playSequence(before, before.length > 1 ? RESPONSE_GAP_MS : CONTEXT_GAP_MS);
       if (!completed || trial !== currentTrial) return;
+      const turnGeneration = playbackGeneration;
+      startResponseRecording(trial);
+      await sleep(RESPONSE_RECORDING_PREROLL_MS);
+      if (trial !== currentTrial || turnGeneration !== playbackGeneration) return;
       setStatus("참가자 차례");
       log("beep_start", trial.targetResponse);
       setSpeakPrompt(true);
       els.continueButton.disabled = false;
       log("participant_turn", trial.targetResponse);
-      startResponseRecording(trial);
       playBeep().then(() => {
         if (trial === currentTrial) log("beep_end", trial.targetResponse);
       });
@@ -597,6 +775,16 @@
     return checked ? checked.value : "";
   }
 
+  function updateSurveyBranching() {
+    const livedInKorea = getRadioValue("livedLongestInKoreaBeforeFifteen");
+    const koreanOnlyBeforeSix = getRadioValue("koreanOnlyBeforeSix");
+    els.surveyUploadStatus.classList.remove("is-warning");
+    els.surveyUploadStatus.textContent = "";
+    els.otherBeforeSixBlock.classList.toggle("is-visible", koreanOnlyBeforeSix === "no");
+    els.koreaProvinceBlock.classList.toggle("is-visible", livedInKorea === "yes");
+    els.nonKoreaRegionBlock.classList.toggle("is-visible", livedInKorea === "no");
+  }
+
   function collectSurveyData() {
     const additionalLanguages = Array.from(els.languageRows.querySelectorAll("tr"))
       .map((row) => ({
@@ -610,19 +798,63 @@
       startedAt: surveyStartedAt,
       submittedAt: new Date().toISOString(),
       age: els.ageInput.value.trim(),
-      gender: els.genderInput.value.trim(),
+      gender: getRadioValue("gender"),
       korean_native_language: getRadioValue("koreanNative"),
       korean_only_language_before_age_six: getRadioValue("koreanOnlyBeforeSix"),
       other_languages_before_age_six: els.otherBeforeSixInput.value.trim(),
-      grew_up_city: els.grewUpCityInput.value.trim(),
+      lived_longest_in_korea_before_age_fifteen: getRadioValue("livedLongestInKoreaBeforeFifteen"),
+      korea_province_lived_longest_before_age_fifteen: els.koreaProvinceSelect.value,
+      non_korea_country_region_lived_longest_before_age_fifteen: els.nonKoreaRegionInput.value.trim(),
       additional_languages: additionalLanguages,
+      browserInfo: getBrowserInfo(),
+      microphoneInfo: getMicInfo(),
     };
+  }
+
+  function validateSurveyData(surveyData) {
+    const missing = [];
+
+    if (!surveyData.age) missing.push("나이");
+    if (!surveyData.gender) missing.push("성별");
+    if (!surveyData.korean_native_language) missing.push("한국어가 모국어인지");
+    if (!surveyData.korean_only_language_before_age_six) {
+      missing.push("만 6세 이전 사용 언어");
+    }
+    if (
+      surveyData.korean_only_language_before_age_six === "no" &&
+      !surveyData.other_languages_before_age_six
+    ) {
+      missing.push("만 6세 이전에 사용한 다른 언어");
+    }
+    if (!surveyData.lived_longest_in_korea_before_age_fifteen) {
+      missing.push("만 15세 이전 한국 거주 여부");
+    }
+    if (
+      surveyData.lived_longest_in_korea_before_age_fifteen === "yes" &&
+      !surveyData.korea_province_lived_longest_before_age_fifteen
+    ) {
+      missing.push("만 15세 이전 가장 오래 산 한국의 도");
+    }
+    if (
+      surveyData.lived_longest_in_korea_before_age_fifteen === "no" &&
+      !surveyData.non_korea_country_region_lived_longest_before_age_fifteen
+    ) {
+      missing.push("만 15세 이전 가장 오래 산 나라와 지역");
+    }
+    surveyData.additional_languages.forEach((language, index) => {
+      if (!language.language || !language.years_spoken) {
+        missing.push(`추가 언어 ${index + 1}`);
+      }
+    });
+
+    return missing;
   }
 
   function showSurvey() {
     surveyStartedAt = new Date().toISOString();
     if (!els.languageRows.children.length) addLanguageRow();
     els.surveyUploadStatus.textContent = "";
+    els.surveyUploadStatus.classList.remove("is-warning");
     els.submitSurveyButton.disabled = false;
     showScreen("survey");
     log("survey_start");
@@ -630,8 +862,18 @@
 
   async function submitSurvey() {
     els.submitSurveyButton.disabled = true;
-    els.surveyUploadStatus.textContent = "설문을 업로드하는 중입니다...";
     const surveyData = collectSurveyData();
+    const missing = validateSurveyData(surveyData);
+    if (missing.length) {
+      els.surveyUploadStatus.textContent = `다음 항목을 입력해 주세요: ${missing.join(", ")}`;
+      els.surveyUploadStatus.classList.add("is-warning");
+      els.submitSurveyButton.disabled = false;
+      log("survey_validation_error", missing.join("; "));
+      return;
+    }
+
+    els.surveyUploadStatus.classList.remove("is-warning");
+    els.surveyUploadStatus.textContent = "설문을 업로드하는 중입니다...";
     log("survey_submit");
 
     try {
@@ -705,8 +947,11 @@
     els.startButton.textContent = "마이크 권한 요청 중...";
 
     try {
-      participantId = cleanName(els.participantIdInput.value) || SESSION_ID;
       await requestMicPermission();
+      uploadSessionMetadataFile("experiment_start").catch((error) => {
+        console.error(error);
+        log("metadata_upload_error", error.message);
+      });
       log("experiment_start", participantId);
       nextTrial();
     } catch (error) {
@@ -723,5 +968,11 @@
   bindButtonActivation(els.addLanguageButton, () => addLanguageRow());
   bindButtonActivation(els.submitSurveyButton, submitSurvey);
   els.surveyForm.addEventListener("submit", (event) => event.preventDefault());
+  document
+    .querySelectorAll('input[name="livedLongestInKoreaBeforeFifteen"]')
+    .forEach((input) => input.addEventListener("change", updateSurveyBranching));
+  document
+    .querySelectorAll('input[name="koreanOnlyBeforeSix"]')
+    .forEach((input) => input.addEventListener("change", updateSurveyBranching));
   if (els.downloadLogButton) bindButtonActivation(els.downloadLogButton, downloadLog);
 })();
