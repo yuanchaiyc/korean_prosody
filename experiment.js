@@ -58,6 +58,8 @@
   let audioContext = null;
   let recorderSource = null;
   let recorderProcessor = null;
+  let warmupSource = null;
+  let warmupGain = null;
   let recordingState = null;
   let surveyStartedAt = "";
 
@@ -137,6 +139,28 @@
           autoGainControl: false,
         },
       });
+    }
+
+    await initializeRecordingEngine();
+  }
+
+  async function initializeRecordingEngine() {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) {
+      throw new Error("This browser does not support AudioContext.");
+    }
+
+    audioContext = audioContext || new AudioContext();
+    if (audioContext.state === "suspended") {
+      await audioContext.resume();
+    }
+
+    if (!warmupSource && micStream) {
+      warmupSource = audioContext.createMediaStreamSource(micStream);
+      warmupGain = audioContext.createGain();
+      warmupGain.gain.value = 0;
+      warmupSource.connect(warmupGain);
+      warmupGain.connect(audioContext.destination);
     }
   }
 
@@ -236,6 +260,32 @@
     }
 
     return new Blob([buffer], { type: "audio/wav" });
+  }
+
+  function getSignalStats(chunks) {
+    let sampleCount = 0;
+    let sumSquares = 0;
+    let peak = 0;
+
+    chunks.forEach((chunk) => {
+      chunk.forEach((channel) => {
+        for (let index = 0; index < channel.length; index += 1) {
+          const sample = channel[index];
+          sampleCount += 1;
+          sumSquares += sample * sample;
+          peak = Math.max(peak, Math.abs(sample));
+        }
+      });
+    });
+
+    const rms = sampleCount ? Math.sqrt(sumSquares / sampleCount) : 0;
+    return {
+      sampleCount,
+      rms,
+      peak,
+      durationSeconds: audioContext && sampleCount ? sampleCount / audioContext.sampleRate : 0,
+      likelySilent: sampleCount === 0 || peak < 0.0001,
+    };
   }
 
   async function uploadRecording(blob, meta) {
@@ -355,12 +405,6 @@
 
   function startResponseRecording(trial) {
     if (!micStream || recordingState) return;
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContext) {
-      log("recording_error", "This browser does not support AudioContext.");
-      return;
-    }
-
     const meta = {
       trialId: trial.id,
       targetResponse: trial.targetResponse,
@@ -372,8 +416,13 @@
     };
 
     try {
-      audioContext = audioContext || new AudioContext();
-      if (audioContext.state === "suspended") audioContext.resume();
+      if (!audioContext || audioContext.state === "closed") {
+        log("recording_error", "AudioContext is not ready.");
+        return;
+      }
+      if (audioContext.state === "suspended") {
+        audioContext.resume();
+      }
       recorderSource = audioContext.createMediaStreamSource(micStream);
       recorderProcessor = audioContext.createScriptProcessor(4096, 1, 1);
       recordingState = {
@@ -421,6 +470,8 @@
         sampleRate: state.sampleRate,
         channelCount: state.channelCount,
         bitDepth: 16,
+        audioContextState: audioContext ? audioContext.state : "",
+        signalStats: getSignalStats(state.chunks),
       },
     };
     if (shouldUpload) {
