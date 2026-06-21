@@ -96,6 +96,120 @@ h2 {
   font-size: 18px;
 }
 
+.fieldLabel {
+  display: block;
+  margin: 4px 0 6px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.textInput {
+  display: block;
+  width: min(100%, 320px);
+  min-height: 42px;
+  margin: 0 0 18px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink);
+  font: inherit;
+}
+
+.wideInput {
+  width: min(100%, 560px);
+}
+
+.surveyPanel {
+  margin-top: 4vh;
+  max-width: 820px;
+}
+
+.surveyForm {
+  display: grid;
+  gap: 14px;
+}
+
+.surveyFieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.surveyFieldset legend {
+  padding: 0 6px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.surveyFieldset label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.languageTableHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.languageTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.languageTable th,
+.languageTable td {
+  padding: 8px;
+  border: 1px solid var(--line);
+  text-align: left;
+}
+
+.languageTable th {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.tableInput {
+  width: 100%;
+  min-height: 36px;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink);
+  font: inherit;
+}
+
+.smallButton {
+  min-height: 34px;
+  padding: 0 10px;
+  font-size: 14px;
+}
+
+.removeLanguageButton {
+  width: 100%;
+}
+
+.formActions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 6px;
+}
+
+.surveyStatus {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
 .trialHeader {
   display: flex;
   align-items: center;
@@ -120,25 +234,37 @@ h2 {
 }
 
 .speakPrompt {
-  display: none;
-  width: 100%;
-  margin: 0 0 10px;
-  padding: 10px 16px;
+  position: absolute;
+  top: 8px;
+  right: 16px;
+  z-index: 2;
+  visibility: hidden;
+  width: auto;
+  margin: 0;
+  padding: 6px 14px;
   border: 2px solid var(--target-line);
   border-radius: 6px;
   background: var(--target);
   color: #5c4710;
-  font-size: 32px;
+  font-size: 24px;
   line-height: 1.15;
   font-weight: 700;
   text-align: center;
+  pointer-events: none;
 }
 
 .speakPrompt.is-visible {
-  display: block;
+  visibility: visible;
+}
+
+.speakPrompt.is-info {
+  border-color: var(--playing-line);
+  background: var(--playing);
+  color: #174852;
 }
 
 .contentBand {
+  position: relative;
   padding: 12px 16px;
   margin-bottom: 0;
   min-height: 0;
@@ -341,68 +467,140 @@ button:disabled {
 
 @media (max-width: 680px) {
   .shell {
-    width: min(100vw - 24px, 980px);
-    padding: 12px 0;
+    width: min(100vw - 10px, 980px);
+    padding: 6px 0;
   }
 
   #trialScreen.is-active {
-    height: auto;
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    gap: 6px;
+    height: calc(100dvh - 12px);
     min-height: 0;
+    overflow: hidden;
   }
 
   .panel,
   .contentBand,
   .trialHeader {
-    padding: 12px;
+    padding: 8px;
   }
 
-  .trialHeader,
-  .controls {
-    align-items: stretch;
-    flex-direction: column;
+  .trialHeader {
+    gap: 8px;
+  }
+
+  .trialHeader h1 {
+    font-size: 18px;
+  }
+
+  .eyebrow {
+    margin-bottom: 2px;
+    font-size: 11px;
   }
 
   h1 {
-    font-size: 28px;
+    font-size: 24px;
+  }
+
+  h2 {
+    margin-bottom: 6px;
+    font-size: 14px;
+  }
+
+  .status {
+    min-width: 96px;
+    padding: 5px 6px;
+    font-size: 12px;
   }
 
   .koreanText,
   .bubbleText {
-    font-size: 18px;
+    font-size: 14px;
+    line-height: 1.25;
   }
 
   .speakPrompt {
-    font-size: 26px;
+    top: 6px;
+    right: 8px;
+    padding: 4px 9px;
+    font-size: 18px;
+  }
+
+  .contentBand {
+    overflow: hidden;
+  }
+
+  .contentBand:nth-of-type(2) {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .dialogue {
+    gap: 4px;
+    overflow: hidden;
   }
 
   .dialogueLine,
   .dialogueLine.is-right {
-    grid-template-columns: 64px minmax(0, 1fr);
-    gap: 10px;
+    grid-template-columns: 46px minmax(0, 1fr);
+    gap: 6px;
   }
 
   .dialogueLine.is-right {
-    grid-template-columns: minmax(0, 1fr) 64px;
+    grid-template-columns: minmax(0, 1fr) 46px;
   }
 
   .avatar {
-    width: 58px;
-    height: 58px;
+    width: 40px;
+    height: 40px;
+    gap: 2px;
   }
 
   .avatarHead {
-    width: 25px;
-    height: 25px;
+    width: 17px;
+    height: 17px;
   }
 
   .avatarBody {
-    width: 42px;
-    height: 27px;
-    border-radius: 17px 17px 8px 8px;
+    width: 30px;
+    height: 19px;
+    border-radius: 13px 13px 6px 6px;
   }
 
   .speakerName {
-    max-width: 64px;
-    font-size: 12px;
+    max-width: 46px;
+    font-size: 10px;
+  }
+
+  .bubble {
+    min-height: 34px;
+    padding: 5px 8px;
+    border-width: 1px;
+  }
+
+  .bubble::before {
+    left: -8px;
+    bottom: 10px;
+    width: 10px;
+    height: 10px;
+    border-left-width: 1px;
+    border-bottom-width: 1px;
+  }
+
+  .dialogueLine.is-right .bubble::before {
+    right: -8px;
+    border-right-width: 1px;
+  }
+
+  .controls {
+    gap: 6px;
+    padding: 6px;
+  }
+
+  button {
+    flex: 1 1 0;
+    min-height: 36px;
+    padding: 0 8px;
+    font-size: 13px;
   }
 }

@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="en">
+<html lang="ko">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Korean Prosody Experiment - Sequential Backup</title>
-    <link rel="stylesheet" href="experiment.css?v=20260619-next-nofix">
+    <link rel="stylesheet" href="experiment.css?v=20260621-conversation-cue-r1">
   </head>
   <body>
     <main class="shell">
@@ -13,24 +13,23 @@
           <p class="eyebrow">한국어 운율에 대한 실험</p>
           <h1>실험 참여를 환영합니다</h1>
           <p class="lead">
-            이 실험에서 당신은 다른 사람과 여러 번 대화를 나눕니다. 우선 각 대화가 일어나는 상황과 상대방이 하는 말을 글로 보고, 소리로도 듣게 됩니다.
-          <!--You are going to engage in several conversations with another person. You will hear-->
-           <!-- the background of each conversation and the sentences said by the other person. -->
+            이 실험에서 당신은 다른 사람과 여러 번 대화를 나눕니다. 우선 각 대화가
+            일어나는 상황과 상대방이 하는 말을 글로 보고, 소리로도 듣게 됩니다.
           </p>
           <p class="lead">
-            노란색으로 표시된 말풍선은 해당 대화에서 당신이 맡은 역할을 가리키고, 말풍선 안에 있는 문장이 당신의 대사입니다.
-            삐 소리가 나면 당신의 대사를 소리 내어 읽어 주세요. 진짜 대화를 하는 중이라고 상상하며 자연스러운 속도와 억양으로 말해 주세요.
-            <!--The sentence highlighted in yellow is your role in the conversation, and it is the-->
-            <!--sentence you are going to say. When you hear a beep sound, please say that sentence-->
-            <!--out loud. Imagine yourself in a real conversation, and produce the sentence with a-->
-            <!--natural speed and intonation.-->
+            노란색으로 표시된 말풍선은 해당 대화에서 당신이 맡은 역할을 가리키고,
+            말풍선 안에 있는 문장이 당신의 대사입니다. 삐 소리가 나면 당신의 대사를
+            소리 내어 읽어 주세요. 진짜 대화를 하는 중이라고 상상하며 자연스러운
+            속도와 억양으로 말해 주세요.
           </p>
           <p class="lead">
-            "상황과 대화 재생하기" 버튼을 눌러 각 문항을 시작하세요. 당신의 대사를 다 읽은 후 "나머지 재생하기" 버튼을 누르면 나머지 대화가 재생되고 다음 문항으로 넘어갑니다.
-            <!--Click <strong>Play context and conversation</strong> to start each trial. When you-->
-            <!--finish producing your sentence, click <strong>Play rest</strong> to listen to the rest-->
-            <!--of the conversation.-->
+            <strong>상황과 대화 재생하기</strong> 버튼을 눌러 각 문항을 시작하세요.
+            당신의 대사를 다 읽은 후 <strong>나머지 재생하기</strong> 버튼을 누르면
+            나머지 대화가 재생됩니다. 이후 <strong>다음 페이지</strong> 버튼을 눌러
+            다음 문항으로 넘어가세요.
           </p>
+          <label class="fieldLabel" for="participantIdInput">참가자 ID</label>
+          <input id="participantIdInput" class="textInput" type="text" autocomplete="off" placeholder="선택 사항">
           <button id="startButton" class="primary">실험 시작하기</button>
         </div>
       </section>
@@ -38,7 +37,7 @@
       <section id="trialScreen" class="screen">
         <header class="trialHeader">
           <div>
-            <p class="eyebrow">문항<span id="trialNumber">1</span> / <span id="trialTotal">150</span></p>
+            <p class="eyebrow">문항 <span id="trialNumber">1</span> / <span id="trialTotal">150</span></p>
             <h1 id="trialId">q0000</h1>
           </div>
           <div id="statusText" class="status">준비</div>
@@ -66,19 +65,73 @@
         <div class="fixation">준비하세요</div>
       </section>
 
+      <section id="surveyScreen" class="screen">
+        <div class="panel surveyPanel">
+          <p class="eyebrow">설문</p>
+          <h1>마지막 설문</h1>
+          <p class="lead">실험을 마치기 전에 아래 질문에 답해 주세요.</p>
+
+          <form id="surveyForm" class="surveyForm">
+            <label class="fieldLabel" for="ageInput">1. 나이</label>
+            <input id="ageInput" class="textInput" type="number" min="0" max="120" inputmode="numeric">
+
+            <label class="fieldLabel" for="genderInput">2. 성별</label>
+            <input id="genderInput" class="textInput" type="text" autocomplete="off">
+
+            <fieldset class="surveyFieldset">
+              <legend>3. 한국어가 모국어입니까?</legend>
+              <label><input type="radio" name="koreanNative" value="yes"> 예</label>
+              <label><input type="radio" name="koreanNative" value="no"> 아니요</label>
+            </fieldset>
+
+            <fieldset class="surveyFieldset">
+              <legend>4. 만 6세 이전에 사용한 언어가 한국어뿐이었습니까?</legend>
+              <label><input type="radio" name="koreanOnlyBeforeSix" value="yes"> 예</label>
+              <label><input type="radio" name="koreanOnlyBeforeSix" value="no"> 아니요</label>
+            </fieldset>
+
+            <label class="fieldLabel" for="otherBeforeSixInput">아니라면, 만 6세 이전에 사용한 다른 언어를 적어 주세요.</label>
+            <input id="otherBeforeSixInput" class="textInput wideInput" type="text" autocomplete="off">
+
+            <label class="fieldLabel" for="grewUpCityInput">5. 어느 도시에서 자랐습니까?</label>
+            <input id="grewUpCityInput" class="textInput wideInput" type="text" autocomplete="off">
+
+            <div class="languageTableHeader">
+              <label class="fieldLabel">6. 추가로 사용하는 언어와 사용 기간</label>
+              <button id="addLanguageButton" class="secondary smallButton" type="button">언어 추가</button>
+            </div>
+
+            <table class="languageTable">
+              <thead>
+                <tr>
+                  <th>언어</th>
+                  <th>사용 연수</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="languageRows"></tbody>
+            </table>
+
+            <div class="formActions">
+              <button id="submitSurveyButton" class="primary" type="button">설문 제출</button>
+              <p id="surveyUploadStatus" class="surveyStatus" aria-live="polite"></p>
+            </div>
+          </form>
+        </div>
+      </section>
+
       <section id="endScreen" class="screen">
         <div class="panel">
           <p class="eyebrow">완료</p>
-          <h1>Thank you</h1>
+          <h1>감사합니다</h1>
           <p class="lead">실험이 끝났습니다.</p>
-          <button id="downloadLogButton" class="secondary">Download event log</button>
         </div>
       </section>
     </main>
 
     <audio id="player" preload="auto" playsinline></audio>
     <audio id="beepPlayer" preload="auto" playsinline src="assets/beep.wav"></audio>
-    <script src="experiment_data_sequential_1rep.js?v=20260619-next-nofix"></script>
-    <script src="experiment.js?v=20260619-next-nofix"></script>
+    <script src="experiment_data_sequential_1rep.js?v=20260621-conversation-cue-r1"></script>
+    <script src="experiment.js?v=20260621-conversation-cue-r1"></script>
   </body>
 </html>
