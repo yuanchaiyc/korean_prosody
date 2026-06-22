@@ -74,7 +74,7 @@
           <p class="lead">실험을 마치기 전에 아래 질문에 답해 주세요.</p>
 
           <form id="surveyForm" class="surveyForm">
-            <label class="fieldLabel" for="ageInput">1. 나이</label>
+            <label class="fieldLabel" for="ageInput">1. 만 나이 (숫자만)</label>
             <input id="ageInput" class="textInput" type="number" min="0" max="120" inputmode="numeric">
 
             <fieldset class="surveyFieldset">
@@ -91,7 +91,7 @@
             </fieldset>
 
             <fieldset class="surveyFieldset">
-              <legend>4. 만 6세 이전에 사용한 언어가 한국어뿐이었습니까?</legend>
+              <legend>4. 만 6세까지의 기간동안 사용한 언어가 한국어뿐이었습니까?</legend>
               <label><input type="radio" name="koreanOnlyBeforeSix" value="yes"> 예</label>
               <label><input type="radio" name="koreanOnlyBeforeSix" value="no"> 아니요</label>
             </fieldset>
@@ -102,34 +102,34 @@
             </div>
 
             <fieldset class="surveyFieldset">
-              <legend>5. 만 15세 이전에 한국에서 가장 오래 살았습니까?</legend>
+              <legend>5. 만 15세까지의 기간 중 가장 오래 산 곳이 한국입니까?</legend>
               <label><input type="radio" name="livedLongestInKoreaBeforeFifteen" value="yes"> 예</label>
               <label><input type="radio" name="livedLongestInKoreaBeforeFifteen" value="no"> 아니요</label>
             </fieldset>
 
             <div id="koreaProvinceBlock" class="conditionalQuestion">
-              <label class="fieldLabel" for="koreaProvinceSelect">만 15세 이전에 가장 오래 산 한국의 도를 선택해 주세요.</label>
+              <label class="fieldLabel" for="koreaProvinceSelect">만 15세까지의 기간 중 가장 오래 산 한국의 도를 선택해 주세요.</label>
               <select id="koreaProvinceSelect" class="textInput wideInput">
                 <option value="">선택해 주세요</option>
-                <option value="경기도">경기도</option>
-                <option value="강원특별자치도">강원특별자치도</option>
+                <option value="수도권">수도권 (서울/경기도)</option>
+                <option value="강원도">강원도</option>
                 <option value="충청북도">충청북도</option>
                 <option value="충청남도">충청남도</option>
-                <option value="전북특별자치도">전북특별자치도</option>
+                <option value="전라북도">전라북도</option>
                 <option value="전라남도">전라남도</option>
                 <option value="경상북도">경상북도</option>
                 <option value="경상남도">경상남도</option>
-                <option value="제주특별자치도">제주특별자치도</option>
+                <option value="제주도">제주도</option>
               </select>
             </div>
 
             <div id="nonKoreaRegionBlock" class="conditionalQuestion">
-              <label class="fieldLabel" for="nonKoreaRegionInput">아니라면, 만 15세 이전에 가장 오래 산 나라와 지역을 적어 주세요.</label>
+              <label class="fieldLabel" for="nonKoreaRegionInput">아니라면, 만 15세까지의 기간 중 가장 오래 산 나라와 지역을 적어 주세요.</label>
               <input id="nonKoreaRegionInput" class="textInput wideInput" type="text" autocomplete="off">
             </div>
 
             <div class="languageTableHeader">
-              <label class="fieldLabel">6. 추가로 사용하는 언어와 사용 기간</label>
+              <label class="fieldLabel">6. 한국어 이외에 추가로 사용하는 언어와 사용 기간</label>
               <button id="addLanguageButton" class="secondary smallButton" type="button">언어 추가</button>
             </div>
 
