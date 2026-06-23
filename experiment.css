@@ -103,6 +103,126 @@ h2 {
   border-radius: 8px;
 }
 
+.consentBox {
+  margin: 28px 0;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcfd;
+}
+
+.consentBox h2 {
+  margin-bottom: 12px;
+}
+
+.consentBox p,
+.consentBox li {
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.consentBox p {
+  margin-bottom: 14px;
+}
+
+.consentBox a {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.consentDetails {
+  margin: 16px 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.consentDetails summary {
+  cursor: pointer;
+  color: var(--accent-dark);
+  font-weight: 700;
+}
+
+.consentDetails ol {
+  margin: 12px 0 0;
+  padding-left: 22px;
+}
+
+.consentCheck {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 10px;
+  align-items: start;
+  margin: 18px 0;
+  color: var(--ink);
+  font-size: 15px;
+}
+
+.consentCheck input {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+}
+
+.audioReleaseFieldset {
+  display: grid;
+  gap: 10px;
+  margin: 18px 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.audioReleaseFieldset legend {
+  padding: 0 6px;
+  color: var(--accent-dark);
+  font-weight: 700;
+}
+
+.audioReleaseFieldset p {
+  margin-bottom: 4px;
+}
+
+.audioReleaseFieldset label {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 10px;
+  align-items: start;
+  color: var(--ink);
+  font-size: 15px;
+}
+
+.audioReleaseFieldset input {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+}
+
+.signatureGrid {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) 180px;
+  gap: 10px 14px;
+  align-items: end;
+}
+
+.signatureGrid .fieldLabel {
+  margin-bottom: 0;
+}
+
+.signatureGrid .textInput {
+  margin-bottom: 0;
+}
+
+.consentError {
+  min-height: 20px;
+  margin: 12px 0 0;
+  color: #9f2d20;
+  font-size: 14px;
+  font-weight: 700;
+}
+
 .fieldLabel {
   display: block;
   margin: 4px 0 6px;
@@ -596,6 +716,10 @@ button:disabled {
   .speakerName {
     max-width: 46px;
     font-size: 10px;
+  }
+
+  .signatureGrid {
+    grid-template-columns: 1fr;
   }
 
   .bubble {

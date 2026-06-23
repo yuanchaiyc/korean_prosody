@@ -24,6 +24,17 @@
 
   const els = {
     startButton: document.getElementById("startButton"),
+    audioConsentCheckbox: document.getElementById("audioConsentCheckbox"),
+    releaseResearchTeam: document.getElementById("releaseResearchTeam"),
+    releasePublicArchive: document.getElementById("releasePublicArchive"),
+    releasePublications: document.getElementById("releasePublications"),
+    releaseScientificMeetings: document.getElementById("releaseScientificMeetings"),
+    releaseClassrooms: document.getElementById("releaseClassrooms"),
+    releasePublicPresentations: document.getElementById("releasePublicPresentations"),
+    releaseBroadcast: document.getElementById("releaseBroadcast"),
+    consentNameInput: document.getElementById("consentNameInput"),
+    consentDateInput: document.getElementById("consentDateInput"),
+    consentError: document.getElementById("consentError"),
     practiceStartButton: document.getElementById("practiceStartButton"),
     practiceDoneButton: document.getElementById("practiceDoneButton"),
     trialNumber: document.getElementById("trialNumber"),
@@ -67,6 +78,7 @@
   let recordingState = null;
   let surveyStartedAt = "";
   let practiceDoneShown = false;
+  let consentData = null;
 
   els.trialTotal.textContent = String(data.totalTrials);
 
@@ -113,6 +125,44 @@
       .trim()
       .replace(/[^\w.-]+/g, "_")
       .replace(/^_+|_+$/g, "");
+  }
+
+  function collectConsentData() {
+    return {
+      consentVersion: "UCSD-LD consent-revised 10_6_22",
+      audioRecordingConsent: Boolean(els.audioConsentCheckbox && els.audioConsentCheckbox.checked),
+      audioReleaseUses: {
+        researchTeamProjectUse: Boolean(els.releaseResearchTeam && els.releaseResearchTeam.checked),
+        publicOnlineArchive: Boolean(els.releasePublicArchive && els.releasePublicArchive.checked),
+        scientificPublications: Boolean(els.releasePublications && els.releasePublications.checked),
+        scientificMeetings: Boolean(els.releaseScientificMeetings && els.releaseScientificMeetings.checked),
+        classroomTeaching: Boolean(els.releaseClassrooms && els.releaseClassrooms.checked),
+        publicPresentationsNonScientificGroups: Boolean(
+          els.releasePublicPresentations && els.releasePublicPresentations.checked
+        ),
+        televisionOrRadio: Boolean(els.releaseBroadcast && els.releaseBroadcast.checked),
+      },
+      participantSignature: els.consentNameInput ? els.consentNameInput.value.trim() : "",
+      signatureDate: els.consentDateInput ? els.consentDateInput.value : "",
+      consentedAt: new Date().toISOString(),
+    };
+  }
+
+  function validateConsent(dataToValidate) {
+    const missing = [];
+    if (!dataToValidate.audioRecordingConsent) missing.push("오디오 녹음 동의");
+    if (!dataToValidate.participantSignature) missing.push("참가자 이름 / 전자 서명");
+    if (!dataToValidate.signatureDate) missing.push("날짜");
+    return missing;
+  }
+
+  function setConsentError(message) {
+    if (els.consentError) els.consentError.textContent = message;
+  }
+
+  function setDefaultConsentDate() {
+    if (!els.consentDateInput || els.consentDateInput.value) return;
+    els.consentDateInput.value = new Date().toISOString().slice(0, 10);
   }
 
   function formatPdtTimestamp(date = new Date()) {
@@ -395,6 +445,7 @@
         bitDepth: 16,
         sampleRate: audioContext ? audioContext.sampleRate : "",
       },
+      consent: consentData,
       experiment: {
         totalTrials: data.totalTrials,
         uploadUrlConfigured: Boolean(UPLOAD_URL),
@@ -1058,7 +1109,33 @@
     });
   }
 
+  setDefaultConsentDate();
+  [
+    els.audioConsentCheckbox,
+    els.releaseResearchTeam,
+    els.releasePublicArchive,
+    els.releasePublications,
+    els.releaseScientificMeetings,
+    els.releaseClassrooms,
+    els.releasePublicPresentations,
+    els.releaseBroadcast,
+    els.consentNameInput,
+    els.consentDateInput,
+  ]
+    .filter(Boolean)
+    .forEach((input) => input.addEventListener("input", () => setConsentError("")));
+
   bindButtonActivation(els.startButton, async () => {
+    const submittedConsent = collectConsentData();
+    const missingConsent = validateConsent(submittedConsent);
+    if (missingConsent.length) {
+      setConsentError(`시작하기 전에 동의서의 다음 항목을 완료해 주세요: ${missingConsent.join(", ")}.`);
+      log("consent_validation_error", missingConsent.join("; "));
+      return;
+    }
+
+    consentData = submittedConsent;
+    setConsentError("");
     els.startButton.disabled = true;
     els.startButton.textContent = "마이크 권한 요청 중...";
 
