@@ -14,6 +14,8 @@
   const beepPlayer = document.getElementById("beepPlayer");
   const screens = {
     welcome: document.getElementById("welcomeScreen"),
+    practice: document.getElementById("practiceScreen"),
+    practiceDone: document.getElementById("practiceDoneScreen"),
     trial: document.getElementById("trialScreen"),
     fixation: document.getElementById("fixationScreen"),
     survey: document.getElementById("surveyScreen"),
@@ -22,6 +24,8 @@
 
   const els = {
     startButton: document.getElementById("startButton"),
+    practiceStartButton: document.getElementById("practiceStartButton"),
+    practiceDoneButton: document.getElementById("practiceDoneButton"),
     trialNumber: document.getElementById("trialNumber"),
     trialTotal: document.getElementById("trialTotal"),
     trialId: document.getElementById("trialId"),
@@ -62,6 +66,7 @@
   let warmupGain = null;
   let recordingState = null;
   let surveyStartedAt = "";
+  let practiceDoneShown = false;
 
   els.trialTotal.textContent = String(data.totalTrials);
 
@@ -217,7 +222,7 @@
     }
   }
 
-  function encodeWav(chunks, sampleRate, channelCount) {
+  function encodeWav(chunks, sampleRate, channelCount, injectedBeeps = []) {
     const frameCount = chunks.reduce((total, chunk) => total + chunk[0].length, 0);
     const channelBuffers = Array.from({ length: channelCount }, () => new Float32Array(frameCount));
     let offset = 0;
@@ -228,6 +233,28 @@
         channelBuffers[channel].set(chunk[channel], offset);
       }
       offset += chunkLength;
+    });
+
+    injectedBeeps.forEach((beep) => {
+      const startSample = Math.max(0, beep.startSample || 0);
+      const durationSamples = Math.floor((beep.durationSeconds || 0.3) * sampleRate);
+      const frequency = beep.frequency || 880;
+      const gain = beep.gain || 0.16;
+      for (let index = 0; index < durationSamples; index += 1) {
+        const sampleIndex = startSample + index;
+        if (sampleIndex >= frameCount) break;
+        const time = index / sampleRate;
+        const fadeIn = Math.min(1, index / Math.max(1, sampleRate * 0.015));
+        const fadeOut = Math.min(1, (durationSamples - index) / Math.max(1, sampleRate * 0.04));
+        const envelope = Math.min(fadeIn, fadeOut);
+        const beepSample = Math.sin(2 * Math.PI * frequency * time) * gain * envelope;
+        for (let channel = 0; channel < channelCount; channel += 1) {
+          channelBuffers[channel][sampleIndex] = Math.max(
+            -1,
+            Math.min(1, channelBuffers[channel][sampleIndex] + beepSample)
+          );
+        }
+      }
     });
 
     const samples = channelCount === 1
@@ -430,6 +457,8 @@
         chunks: [],
         sampleRate: audioContext.sampleRate,
         channelCount: 1,
+        audioContextStartTime: audioContext.currentTime,
+        injectedBeeps: [],
       };
 
       recorderProcessor.onaudioprocess = (event) => {
@@ -472,15 +501,28 @@
         bitDepth: 16,
         audioContextState: audioContext ? audioContext.state : "",
         signalStats: getSignalStats(state.chunks),
+        injectedBeeps: state.injectedBeeps,
       },
     };
     if (shouldUpload) {
-      const blob = encodeWav(state.chunks, state.sampleRate, state.channelCount);
+      const blob = encodeWav(state.chunks, state.sampleRate, state.channelCount, state.injectedBeeps);
       uploadRecording(blob, stoppedMeta);
     } else {
       log("recording_discarded", reason);
     }
     log("recording_stop", reason);
+  }
+
+  function injectBeepIntoRecording() {
+    if (!recordingState || !audioContext) return;
+    const elapsedSeconds = Math.max(0, audioContext.currentTime - recordingState.audioContextStartTime);
+    recordingState.injectedBeeps.push({
+      startSample: Math.round(elapsedSeconds * recordingState.sampleRate),
+      durationSeconds: 0.3,
+      frequency: 880,
+      gain: 0.16,
+    });
+    log("recording_beep_injected", String(recordingState.injectedBeeps.length));
   }
 
   function parseDialogueLines(trial) {
@@ -503,7 +545,8 @@
     const targetIndex = trial.responseLabels.indexOf(trial.targetResponse);
     const lines = parseDialogueLines(trial);
 
-    els.trialNumber.textContent = String(trial.trial);
+    els.trialNumber.textContent = String(trial.displayTrial || trial.trial);
+    els.trialTotal.textContent = String(trial.isPractice ? data.practiceTrials : data.totalTrials);
     els.trialId.textContent = trial.id;
     els.contextText.textContent = trial.contextKr || "";
     els.dialogueText.innerHTML = "";
@@ -752,6 +795,7 @@
       setSpeakPrompt(true);
       els.continueButton.disabled = false;
       log("participant_turn", trial.targetResponse);
+      injectBeepIntoRecording();
       playBeep().then(() => {
         if (trial === currentTrial) log("beep_end", trial.targetResponse);
       });
@@ -836,6 +880,15 @@
     els.nonKoreaRegionBlock.classList.toggle("is-visible", livedInKorea === "no");
   }
 
+  function resetSurveyForm() {
+    if (!els.surveyForm) return;
+    els.surveyForm.reset();
+    els.languageRows.innerHTML = "";
+    els.surveyUploadStatus.textContent = "";
+    els.surveyUploadStatus.classList.remove("is-warning");
+    updateSurveyBranching();
+  }
+
   function collectSurveyData() {
     const additionalLanguages = Array.from(els.languageRows.querySelectorAll("tr"))
       .map((row) => ({
@@ -903,6 +956,7 @@
 
   function showSurvey() {
     surveyStartedAt = new Date().toISOString();
+    resetSurveyForm();
     if (!els.languageRows.children.length) addLanguageRow();
     els.surveyUploadStatus.textContent = "";
     els.surveyUploadStatus.classList.remove("is-warning");
@@ -950,6 +1004,17 @@
 
   function nextTrial() {
     trialIndex += 1;
+    if (
+      data.practiceTrials &&
+      trialIndex === data.practiceTrials &&
+      !practiceDoneShown
+    ) {
+      practiceDoneShown = true;
+      log("practice_done_screen");
+      showScreen("practiceDone");
+      return;
+    }
+
     if (trialIndex >= data.trials.length) {
       log("trials_complete");
       showSurvey();
@@ -1004,7 +1069,12 @@
         log("metadata_upload_error", error.message);
       });
       log("experiment_start", participantId);
-      nextTrial();
+      if (data.practiceTrials) {
+        showScreen("practice");
+        log("practice_screen");
+      } else {
+        nextTrial();
+      }
     } catch (error) {
       console.error(error);
       alert("이 실험에는 마이크 권한이 필요합니다. 마이크 접근을 허용한 뒤 실험 시작하기를 다시 눌러 주세요.");
@@ -1013,12 +1083,22 @@
       els.startButton.textContent = "실험 시작하기";
     }
   });
+  bindButtonActivation(els.practiceStartButton, () => {
+    log("practice_start_click");
+    nextTrial();
+  });
+  bindButtonActivation(els.practiceDoneButton, () => {
+    log("practice_done_next_click");
+    showScreen("trial");
+    runTrial();
+  });
   bindButtonActivation(els.playBeforeButton, playBeforeTarget);
   bindButtonActivation(els.continueButton, continueTrial);
   bindButtonActivation(els.manualNextButton, manualNextTrial);
   bindButtonActivation(els.addLanguageButton, () => addLanguageRow());
   bindButtonActivation(els.submitSurveyButton, submitSurvey);
   els.surveyForm.addEventListener("submit", (event) => event.preventDefault());
+  window.addEventListener("pageshow", () => resetSurveyForm());
   document
     .querySelectorAll('input[name="livedLongestInKoreaBeforeFifteen"]')
     .forEach((input) => input.addEventListener("change", updateSurveyBranching));

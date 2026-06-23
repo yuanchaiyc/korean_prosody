@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Korean Prosody Experiment - Sequential Backup</title>
-    <link rel="stylesheet" href="experiment.css?v=20260621-intro-survey">
+    <link rel="stylesheet" href="experiment.css?v=20260621-intro-phone">
   </head>
   <body>
     <main class="shell">
@@ -16,20 +16,21 @@
             이 실험의 목적은 한국어의 다양한 억양을 이해하는 것입니다. 당신은 연구 대상인
             한국어의 모국어 화자이기에 이 실험의 참여자로 선정되었습니다. 방해요소가 없는 조용한
             곳에서 당신의 핸드폰, 태블릿PC, 또는 노트북의 기본 내장 스피커와 마이크를 
-            이용해 참여해 주세요. 실험에 걸리는 시간은 총 60분 미만입니다. 
+            참여해 주세요. 실험에 걸리는 시간은 총 60분 미만입니다. 
           </p>
+          <img class="introIllustration" src="picture_illustration.png" alt="휴대폰을 책상 위에 놓고 말하는 자세">
           <p class="lead">
             이 실험에서 당신은 다른 사람과 여러 번 대화를 나눕니다. 우선 각 대화가
             일어나는 상황과 상대방이 하는 말을 글로 보고, 소리로도 듣게 됩니다.
             노란색으로 표시된 말풍선은 해당 대화에서 당신이 맡은 역할을 가리키고,
             말풍선 안에 있는 문장이 당신의 대사입니다. 먼저 상황과 대사를 눈으로만 
             처음부터 끝까지 읽은 뒤, <strong>상황과 대화 재생하기</strong> 버튼을 
-            눌러 각 문항을 시작하세요. 삐 소리가 나고 "이제 말하세요" 라는 메시지가 나오면
-            당신의 대사를 소리 내어 말해 주세요. 진짜 대화를 하는 중이라고 상상하며 
-            자연스러운 속도와 억양으로 말해 주세요.
+            눌러 각 문항을 시작하세요. 삐 소리가 나면 당신의 대사를
+            소리 내어 말해 주세요. 진짜 대화를 하는 중이라고 상상하며 자연스러운
+            속도와 억양으로 말해 주세요.
           </p>
           <p class="lead">
-            대사를 다 말한 후 <strong>녹음 완료</strong> 버튼을 누르면 녹음이 저장되고,
+            대사를 다 말한 후 <strong>녹음 완료</strong> 버튼을 누르면
             대화의 나머지 부분이 재생됩니다. 이후 <strong>다음 페이지</strong> 버튼을 눌러
             다음 문항으로 넘어가세요.
           </p>
@@ -39,6 +40,34 @@
             연구 목적으로만 사용됩니다. 
           </p>
           <button id="startButton" class="primary">실험 시작하기</button>
+        </div>
+      </section>
+
+      <section id="practiceScreen" class="screen">
+        <div class="panel">
+          <p class="eyebrow">연습</p>
+          <h1>연습</h1>
+          <p class="lead">
+            먼저 연습 대화 두 개를 진행합니다. <strong>상황과 대화 재생하기</strong> 버튼을 눌러 상황과 대화를 들어 주세요.
+          </p>
+          <p class="lead">
+            그 다음 삐 소리가 들립니다. 삐 소리가 들리면 실제 대화에 참여하듯이 노란색으로 표시된 문장을 소리 내어 말해 주세요.
+          </p>
+          <p class="lead">
+            말을 마친 뒤 <strong>녹음 완료</strong> 버튼을 누르세요. 그런 다음 <strong>다음 페이지</strong> 버튼을 눌러 다음 문항으로 넘어가세요.
+          </p>
+          <button id="practiceStartButton" class="primary">다음 페이지</button>
+        </div>
+      </section>
+
+      <section id="practiceDoneScreen" class="screen">
+        <div class="panel">
+          <p class="eyebrow">연습 완료</p>
+          <h1>연습이 끝났습니다</h1>
+          <p class="lead">
+            연습이 끝났습니다. 연습을 더 하고 싶으면 이 웹페이지를 새로고침해 주세요. 본 실험을 시작할 준비가 되었으면 <strong>다음 페이지</strong> 버튼을 눌러 주세요.
+          </p>
+          <button id="practiceDoneButton" class="primary">다음 페이지</button>
         </div>
       </section>
 
@@ -79,27 +108,27 @@
           <h1>마지막 설문</h1>
           <p class="lead">실험을 마치기 전에 아래 질문에 답해 주세요.</p>
 
-          <form id="surveyForm" class="surveyForm">
+          <form id="surveyForm" class="surveyForm" autocomplete="off">
             <label class="fieldLabel" for="ageInput">1. 만 나이 (숫자만)</label>
-            <input id="ageInput" class="textInput" type="number" min="0" max="120" inputmode="numeric">
+            <input id="ageInput" class="textInput" type="number" min="0" max="120" inputmode="numeric" autocomplete="off">
 
             <fieldset class="surveyFieldset">
               <legend>2. 성별</legend>
-              <label><input type="radio" name="gender" value="female"> 여성</label>
-              <label><input type="radio" name="gender" value="male"> 남성</label>
-              <label><input type="radio" name="gender" value="non-binary"> 논바이너리</label>
+              <label><input type="radio" name="gender" value="female" autocomplete="off"> 여성</label>
+              <label><input type="radio" name="gender" value="male" autocomplete="off"> 남성</label>
+              <label><input type="radio" name="gender" value="non-binary" autocomplete="off"> 논바이너리</label>
             </fieldset>
 
             <fieldset class="surveyFieldset">
               <legend>3. 한국어가 모국어입니까?</legend>
-              <label><input type="radio" name="koreanNative" value="yes"> 예</label>
-              <label><input type="radio" name="koreanNative" value="no"> 아니요</label>
+              <label><input type="radio" name="koreanNative" value="yes" autocomplete="off"> 예</label>
+              <label><input type="radio" name="koreanNative" value="no" autocomplete="off"> 아니요</label>
             </fieldset>
 
             <fieldset class="surveyFieldset">
               <legend>4. 만 6세까지의 기간동안 사용한 언어가 한국어뿐이었습니까?</legend>
-              <label><input type="radio" name="koreanOnlyBeforeSix" value="yes"> 예</label>
-              <label><input type="radio" name="koreanOnlyBeforeSix" value="no"> 아니요</label>
+              <label><input type="radio" name="koreanOnlyBeforeSix" value="yes" autocomplete="off"> 예</label>
+              <label><input type="radio" name="koreanOnlyBeforeSix" value="no" autocomplete="off"> 아니요</label>
             </fieldset>
 
             <div id="otherBeforeSixBlock" class="conditionalQuestion">
@@ -109,13 +138,13 @@
 
             <fieldset class="surveyFieldset">
               <legend>5. 만 15세까지의 기간 중 가장 오래 산 곳이 한국입니까?</legend>
-              <label><input type="radio" name="livedLongestInKoreaBeforeFifteen" value="yes"> 예</label>
-              <label><input type="radio" name="livedLongestInKoreaBeforeFifteen" value="no"> 아니요</label>
+              <label><input type="radio" name="livedLongestInKoreaBeforeFifteen" value="yes" autocomplete="off"> 예</label>
+              <label><input type="radio" name="livedLongestInKoreaBeforeFifteen" value="no" autocomplete="off"> 아니요</label>
             </fieldset>
 
             <div id="koreaProvinceBlock" class="conditionalQuestion">
               <label class="fieldLabel" for="koreaProvinceSelect">만 15세까지의 기간 중 가장 오래 산 한국의 도를 선택해 주세요.</label>
-              <select id="koreaProvinceSelect" class="textInput wideInput">
+              <select id="koreaProvinceSelect" class="textInput wideInput" autocomplete="off">
                 <option value="">선택해 주세요</option>
                 <option value="수도권">수도권 (서울/경기도)</option>
                 <option value="강원도">강원도</option>
@@ -169,7 +198,7 @@
 
     <audio id="player" preload="auto" playsinline></audio>
     <audio id="beepPlayer" preload="auto" playsinline src="assets/beep.wav"></audio>
-    <script src="experiment_data_sequential_1rep.js?v=20260621-intro-survey"></script>
-    <script src="experiment.js?v=20260621-intro-survey"></script>
+    <script src="experiment_data_sequential_1rep.js?v=20260623-practice-instructions"></script>
+    <script src="experiment.js?v=20260623-practice-instructions"></script>
   </body>
 </html>
